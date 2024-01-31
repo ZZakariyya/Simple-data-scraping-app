@@ -3,3 +3,6 @@ I have already quite a bit experience with data scraping because of my job (2022
 
 
 Added working application for this project. Only thing left is making this app portable
+
+App is now portable! It is more than 100mb so I can't upload here, but you can download from this link:
+https://drive.google.com/file/d/1S5Yns-XvV808qUs15RcwzYG6DojTUgYl/view?usp=sharing
