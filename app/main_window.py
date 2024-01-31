@@ -1,5 +1,6 @@
 from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QFileDialog, QLabel, QLineEdit, QTextEdit
 from PySide6.QtCore import QThread, Signal
+from PySide6.QtGui import QIcon
 import sys
 import pandas as pd
 
@@ -10,23 +11,27 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
+from webdriver_manager.chrome import ChromeDriverManager
 
 class WorkerThread(QThread):
     update_signal = Signal(str)
 
-    def __init__(self, excel_path, excel_save_path, driver_path):
+    def __init__(self, excel_path, excel_save_path):
         super().__init__()
         self.excel_path = excel_path
         self.excel_save_path = excel_save_path
-        self.driver_path = driver_path
+        # self.driver_path = driver_path
 
     def run(self):
         try:
-            service = Service(executable_path=self.driver_path)
+            chrome_driver_path = ChromeDriverManager().install()
+
+            service = Service(executable_path=chrome_driver_path)
             options = webdriver.ChromeOptions()
             options.add_argument("--incognito")
             options.add_argument("--start-maximized")
             driver = webdriver.Chrome(service=service, options=options)
+
 
             website_url = 'https://emas.sosial.gov.az/warParticipantVictory'
             driver.get(website_url)
@@ -72,6 +77,10 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Excel Processing with Selenium")
         self.setGeometry(100, 100, 800, 600)
 
+        self.setStyleSheet("background-color: lightblue;")
+
+        self.setWindowIcon(QIcon('E:/scraping_spider/spider1.jpg'))
+
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         layout = QVBoxLayout(central_widget)
@@ -84,9 +93,9 @@ class MainWindow(QMainWindow):
         self.csv_file_line_edit.setPlaceholderText("Path to save Excel file...")
         layout.addWidget(self.csv_file_line_edit)
 
-        self.driver_path_line_edit = QLineEdit()
-        self.driver_path_line_edit.setPlaceholderText("Path to ChromeDriver...")
-        layout.addWidget(self.driver_path_line_edit)
+        # self.driver_path_line_edit = QLineEdit()
+        # self.driver_path_line_edit.setPlaceholderText("Path to ChromeDriver...")
+        # layout.addWidget(self.driver_path_line_edit)
 
         self.open_excel_button = QPushButton("Open Excel File")
         self.open_excel_button.clicked.connect(self.open_excel_dialog)
@@ -96,9 +105,9 @@ class MainWindow(QMainWindow):
         self.open_csv_button.clicked.connect(self.open_csv_dialog)
         layout.addWidget(self.open_csv_button)
 
-        self.driver_path_button = QPushButton("Set Driver Path")
-        self.driver_path_button.clicked.connect(self.driver_path_dialog)
-        layout.addWidget(self.driver_path_button)
+        # self.driver_path_button = QPushButton("Set Driver Path")
+        # self.driver_path_button.clicked.connect(self.driver_path_dialog)
+        # layout.addWidget(self.driver_path_button)
 
         self.start_button = QPushButton("Start Processing")
         self.start_button.clicked.connect(self.start_process)
@@ -118,21 +127,21 @@ class MainWindow(QMainWindow):
         if file_name:
             self.csv_file_line_edit.setText(file_name)
 
-    def driver_path_dialog(self):
-        file_name, _ = QFileDialog.getOpenFileName(self, "Save your data path for your chromedriver")
-        if file_name:
-            self.driver_path_line_edit.setText(file_name)
+    # def driver_path_dialog(self):
+    #     file_name, _ = QFileDialog.getOpenFileName(self, "Save your data path for your chromedriver")
+    #     if file_name:
+    #         self.driver_path_line_edit.setText(file_name)
 
     def start_process(self):
         excel_path = self.excel_file_line_edit.text()
         excel_save_path = self.csv_file_line_edit.text()
-        driver_path = self.driver_path_line_edit.text()
+        # driver_path = self.driver_path_line_edit.text()
 
-        if not excel_path or not excel_save_path or not driver_path:
+        if not excel_path or not excel_save_path:
             self.status_text_edit.append("Please specify all file paths.")
             return
 
-        self.thread = WorkerThread(excel_path, excel_save_path, driver_path)
+        self.thread = WorkerThread(excel_path, excel_save_path)
         self.thread.update_signal.connect(self.update_status)
         self.thread.start()
 
